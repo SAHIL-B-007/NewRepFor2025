@@ -1,10 +1,144 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>www.infopoint.com</title>
+
+<style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      background: #0f2027;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+    }
+
+    h1 {
+      font-size: 3em;
+      z-index: 2;
+      position: relative;
+      text-align: center;
+    }
+
+    .highlight {
+      color: #FFD700;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: block;
+      z-index: 1;
+    }
+  </style>
 </head>
 <body>
-<script language="JavaScript">
-document.write("Hello, Welcome");
-</script>
+
+<h1>Hello, <span class="highlight">Welcome</span> to InfoPoint!</h1>
+  <canvas id="particles"></canvas>
+<script>
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    const particlesArray = [];
+    const particlesCount = 120;
+    const mouse = { x: null, y: null, radius: 100 };
+
+    window.addEventListener('mousemove', (event) => {
+      mouse.x = event.x;
+      mouse.y = event.y;
+    });
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    });
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.radius = Math.random() * 3 + 1;
+        this.speedX = Math.random() * 2 - 1;
+        this.speedY = Math.random() * 2 - 1;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.fill();
+      }
+
+      update() {
+        // Move towards mouse if within radius
+        if (mouse.x && mouse.y) {
+          let dx = mouse.x - this.x;
+          let dy = mouse.y - this.y;
+          let distance = Math.sqrt(dx*dx + dy*dy);
+
+          if (distance < mouse.radius) {
+            this.x += dx * 0.02;
+            this.y += dy * 0.02;
+          }
+        }
+
+        // Move randomly
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        // Wrap around edges
+        if (this.x > width) this.x = 0;
+        if (this.x < 0) this.x = width;
+        if (this.y > height) this.y = 0;
+        if (this.y < 0) this.y = height;
+
+        this.draw();
+      }
+    }
+
+    for (let i = 0; i < particlesCount; i++) {
+      particlesArray.push(new Particle());
+    }
+
+    function connectParticles() {
+      for (let a = 0; a < particlesArray.length; a++) {
+        for (let b = a; b < particlesArray.length; b++) {
+          let dx = particlesArray[a].x - particlesArray[b].x;
+          let dy = particlesArray[a].y - particlesArray[b].y;
+          let distance = Math.sqrt(dx*dx + dy*dy);
+          if (distance < 120) {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(255,255,255,${1 - distance/120})`;
+            ctx.lineWidth = 1;
+            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+            ctx.stroke();
+            ctx.closePath();
+          }
+        }
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      particlesArray.forEach(p => p.update());
+      connectParticles();
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>  
+
 </body>
 </html>
